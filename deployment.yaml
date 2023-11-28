@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: issue-management-service
+  labels:
+    app: issue-management-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: issue-management-service
+  template:
+    metadata:
+      labels:
+        app: issue-management-service
+    spec:
+      containers:
+        - name: issue-management-service
+          image: janithsenanyaka/issue-management-service:1.0.0  # Replace with your Docker Hub image and tag
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
