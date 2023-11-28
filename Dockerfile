@@ -1,5 +1,5 @@
-FROM openjdk:17-jre-slim
+FROM openjdk:17-jdk-slim
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} application.jar
-ENTRYPOINT ["java","-jar","application.jar", "-Duser.timezone=UTC"]
 EXPOSE 8080
+ENTRYPOINT ["java", "-Duser.timezone=UTC", "-jar", "application.jar"]
