@@ -49,5 +49,6 @@ jobs:
           IMAGE_NAME: janithsenanyaka/issue-management-service
           IMAGE_TAG: 1.0.0
         run: |
-          kubectl apply -f deployment.yml -f service.yml --namespace default
+          kubectl apply -f deployment.yml 
+          
       
