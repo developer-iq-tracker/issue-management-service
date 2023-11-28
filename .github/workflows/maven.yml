@@ -46,6 +46,9 @@ jobs:
 
       - name: Deploy to EKS
         env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-2
           IMAGE_NAME: janithsenanyaka/issue-management-service
           IMAGE_TAG: 1.0.0
         run: |
