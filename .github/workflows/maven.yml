@@ -44,9 +44,56 @@ jobs:
           AWS_DEFAULT_REGION: us-east-2
         run: aws eks update-kubeconfig --region us-east-2 --name developer-iq-eks-k8
 
-      - name: Deploy to EKS
-        env:
-          IMAGE_NAME: janithsenanyaka/issue-management-service
-          IMAGE_TAG: 1.0.0
-        run: |
-          kubectl apply -f deployment.yaml -f service.yml --namespace default
+      name: Java CI/CD with Docker Hub and EKS
+
+      on:
+        push:
+          branches: [ "master" ]
+        pull_request:
+          branches: [ "master" ]
+
+      jobs:
+        build-and-deploy:
+          runs-on: ubuntu-latest
+
+          steps:
+            - uses: actions/checkout@v3
+
+            - name: Set up JDK 17
+              uses: actions/setup-java@v3
+              with:
+                java-version: '17'
+                distribution: 'temurin'
+                cache: maven
+
+            - name: Build with Maven
+              run: mvn clean install -DskipTests
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v1
+
+            - name: Build and push Docker image to Docker Hub
+              env:
+                DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+                DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+                IMAGE_TAG: 1.0.0
+                IMAGE_NAME: janithsenanyaka/issue-management-service
+              run: |
+                echo $DOCKER_HUB_TOKEN | docker login --username $DOCKER_HUB_USERNAME --password-stdin
+                docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                docker push $IMAGE_NAME:$IMAGE_TAG
+
+            - name: Update kubeconfig
+              env:
+                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                AWS_DEFAULT_REGION: us-east-2
+              run: aws eks update-kubeconfig --region us-east-2 --name developer-iq-eks-k8
+
+            - name: Deploy to EKS
+              env:
+                IMAGE_NAME: janithsenanyaka/issue-management-service
+                IMAGE_TAG: 1.0.0
+              run: |
+                kubectl apply -f deployment.yaml -f service.yml --namespace default
+      
