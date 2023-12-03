@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: issue-management-service
-          image: janithsenanyaka/issue-management-service:1.0.0  # Replace with your Docker Hub image and tag
+          image: gcr.io/PROJECT_ID/IMAGE:TAG  # Replace with your Docker Hub image and tag
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

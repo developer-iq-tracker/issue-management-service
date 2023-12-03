@@ -1,29 +1,29 @@
-name: Java CI/CD with Docker Hub and EKS
+name: issue-management-service ci cd flow
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ master ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ master ]
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: us-east-2
-  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-  DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-  IMAGE_NAME: janithsenanyaka/issue-management-service
-  IMAGE_TAG: 1.0.0
+  PROJECT_ID: ${{secrets.GKE_PROJECT}}
+  SI_CLUSTER: developer-iq-tracker
+  SI_ZONE: us-central1-c
+  DEPLOYMENT_NAME: issue-management-service
+  IMAGE: issue-management-service
+  TAG: prod
 
 jobs:
-  build-and-deploy:
+  setup-build-publish-deploy:
+    name: Setup Build Publish Deploy
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
 
+      - uses: actions/checkout@v1
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v1
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -32,22 +32,46 @@ jobs:
       - name: Build with Maven
         run: mvn clean install -DskipTests
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - name: Build & push Docker image to Doker-hub
+        uses: mr-smithers-excellent/docker-build-push@v5
+        with:
+          image: janithsenanyaka/user-management-service
+          tags: prod
+          registry: docker.io
+          dockerfile: Dockerfile
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image to Docker Hub
-        run: |
-          echo $DOCKER_HUB_TOKEN | docker login --username $DOCKER_HUB_USERNAME --password-stdin
-          docker build -t $IMAGE_NAME:$IMAGE_TAG .
-          docker push $IMAGE_NAME:$IMAGE_TAG
+      - name: Setup Google Cloud CLI
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@0.1.3
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        with:
+          service_account_key: ${{secrets.GKE_SA_KEY}}
+          project_id: ${{secrets.GKE_PROJECT}}
 
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region us-east-2 --name developer-iq-eks-k8
+      - name: Configure Docker in GKE
+        run: gcloud --quiet auth configure-docker
 
-      - name: Deploy to EKS
-        run: |
-          kubectl apply -f deployment.yml 
-          kubectl apply -f service.yml
-          kubectl apply -f ingress-resource.yaml
-          
-      
+      - name: Get SI Credentials GKE
+        run: gcloud container clusters get-credentials "$SI_CLUSTER" --zone "$SI_ZONE"
+
+      - name: Build Docker Image GCR
+        run: |-
+          docker build --tag "gcr.io/$PROJECT_ID/$IMAGE:$TAG" .
+
+      - name: Publish Docker Image to GCR
+        run: |-
+          docker push "gcr.io/$PROJECT_ID/$IMAGE:$TAG"
+
+      - name: Set up Kustomize
+        run: |-
+          curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
+          chmod u+x ./kustomize
+
+      - name: Deploy Image to GKE cluster
+        run: |-
+          ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/$IMAGE:$TAG
+          ./kustomize build . | kubectl apply -f -
+          kubectl rollout restart deployment $DEPLOYMENT_NAME
+          kubectl get services -o wide
