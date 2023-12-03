@@ -71,6 +71,7 @@ jobs:
 
       - name: Deploy Image to GKE cluster
         run: |-
+          gcloud container clusters get-credentials "$SI_CLUSTER" --zone "$SI_ZONE"
           ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/$IMAGE:$TAG
           ./kustomize build . | kubectl apply -f -
           kubectl rollout restart deployment $DEPLOYMENT_NAME
