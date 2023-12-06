@@ -6,6 +6,6 @@ spec:
   type: LoadBalancer
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 9091
   selector:
     app: issue-management-app  # Label selector for your service
