@@ -3,9 +3,8 @@ kind: Service
 metadata:
   name: issue-management-service
 spec:
-  type: LoadBalancer
+  selector:
+    app: issue-management-service
   ports:
     - port: 80
       targetPort: 9091
-  selector:
-    app: issue-management-app  # Label selector for your service

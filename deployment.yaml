@@ -18,8 +18,6 @@ spec:
         - name: issue-management-service
           image: gcr.io/PROJECT_ID/IMAGE:TAG  # Replace with your Docker Hub image and tag
           imagePullPolicy: Always
-          ports:
-            - containerPort: 8080
           resources:
             requests:
               cpu: "50m"
