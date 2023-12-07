@@ -18,10 +18,24 @@ spec:
         - name: issue-management-service
           image: gcr.io/PROJECT_ID/IMAGE:TAG  # Replace with your Docker Hub image and tag
           imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /api/v1/issue-management-service/actuator/health
+            initialDelaySeconds: 40
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /api/v1/issue-management-service/actuator/health
+            initialDelaySeconds: 40
+            periodSeconds: 10
           resources:
             requests:
-              cpu: "50m"
-              memory: "80Mi"
+              cpu: "150m"
+              memory: "180Mi"
             limits:
               cpu: "500m"
               memory: "512Mi"
