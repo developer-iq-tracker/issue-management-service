@@ -5,7 +5,8 @@ metadata:
 spec:
   selector:
     app: issue-management-service
-  type: NodePort
+  type: ClusterIP
   ports:
-    - port: 8080
+    - protocol: TCP
+      port: 80
       targetPort: 8080
