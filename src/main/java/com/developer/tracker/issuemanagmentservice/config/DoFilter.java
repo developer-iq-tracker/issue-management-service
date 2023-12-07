@@ -17,7 +17,6 @@ public class DoFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-
         log.info("request url : {}", httpServletRequest.getRequestURI());
         filterChain.doFilter(httpServletRequest, httpResponse);
     }
