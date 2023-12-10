@@ -27,11 +27,13 @@ public class IssueServiceImpl implements IssueService {
         log.info("sync Issue Details From Github | process Started");
         List<IssueDto> issueDtoList = this.githubExternalClientService.getContributorDetails();
 
-        issueDtoList.forEach(contributorDto -> {
-            Issue issue = this.generateGitHubUserObject(contributorDto);
-            log.info("sync Issue Details From Github  | save new record | {}", issue);
-            this.checkAndRemoveOldRecords(issue);
-            issues.add(issue);
+        issueDtoList.forEach(issueDto -> {
+            if (issueDto.getAssigneeDto() != null) {
+                Issue issue = this.generateGitHubUserObject(issueDto);
+                log.info("sync Issue Details From Github  | save new record | {}", issue);
+                this.checkAndRemoveOldRecords(issue);
+                issues.add(issue);
+            }
         });
 
         this.issueRepository.saveAll(issues);
