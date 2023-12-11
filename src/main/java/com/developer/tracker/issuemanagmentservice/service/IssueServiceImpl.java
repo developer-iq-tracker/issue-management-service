@@ -25,7 +25,7 @@ public class IssueServiceImpl implements IssueService {
     public List<Issue> syncIssueDetailsFromGithub() {
         List<Issue> issues = new ArrayList<>();
         log.info("sync Issue Details From Github | process Started");
-        List<IssueDto> issueDtoList = this.githubExternalClientService.getContributorDetails();
+        List<IssueDto> issueDtoList = this.githubExternalClientService.getIssueDetails();
 
         issueDtoList.forEach(issueDto -> {
             if (issueDto.getAssigneeDto() != null) {
@@ -48,8 +48,8 @@ public class IssueServiceImpl implements IssueService {
         return IssueDetailsDto.builder().issueCount(issues.size()).issues(issues).build();
     }
 
-    private void checkAndRemoveOldRecords(Issue contributor) {
-        Optional<Issue> oldIssue = this.issueRepository.findByGitHubId(contributor.getGitHubId());
+    private void checkAndRemoveOldRecords(Issue issue) {
+        Optional<Issue> oldIssue = this.issueRepository.findByGitHubId(issue.getGitHubId());
         oldIssue.ifPresent(this.issueRepository::delete);
     }
 
