@@ -23,6 +23,4 @@ public class GithubExternalClientService {
         });
         return response.getBody();
     }
-
-
 }

@@ -29,7 +29,7 @@ public class IssueServiceImpl implements IssueService {
 
         issueDtoList.forEach(issueDto -> {
             if (issueDto.getAssigneeDto() != null) {
-                Issue issue = this.generateGitHubUserObject(issueDto);
+                Issue issue = this.generateIssueObject(issueDto);
                 log.info("sync Issue Details From Github  | save new record | {}", issue);
                 this.checkAndRemoveOldRecords(issue);
                 issues.add(issue);
@@ -53,7 +53,7 @@ public class IssueServiceImpl implements IssueService {
         oldIssue.ifPresent(this.issueRepository::delete);
     }
 
-    private Issue generateGitHubUserObject(IssueDto issueDto) {
+    private Issue generateIssueObject(IssueDto issueDto) {
         return Issue.builder()
                 .gitHubId(issueDto.getId())
                 .assignee(issueDto.getAssigneeDto().getLogin())
