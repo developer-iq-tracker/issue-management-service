@@ -2,8 +2,11 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: developer-iq-tracker
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "ingress-webapps"
 spec:
-  ingressClassName: nginx
+  ingressClassName: gce
   rules:
     - http:
         paths:
@@ -12,5 +15,19 @@ spec:
             backend:
               service:
                 name: issue-management-service
+                port:
+                  number: 80
+          - path: /api/v1/contributor-management-service
+            pathType: Prefix
+            backend:
+              service:
+                name: contributor-management-service
+                port:
+                  number: 80
+          - path: /api/v1/commit-management-service
+            pathType: Prefix
+            backend:
+              service:
+                name: commit-management-service
                 port:
                   number: 80
